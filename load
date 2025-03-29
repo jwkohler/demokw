@@ -1,0 +1,33 @@
+#!/bin/sh
+##
+## loader
+## uses picotool to
+## 1) force reboot into BOOTSEL mode
+## 2) copies the binary image (uf2) onto the device
+## 3) requests a reboot 
+##
+## CMakeLists.txt ========================================
+## add_custom_command( 
+##    TARGET ${ProjectName} POST_BUILD
+##    COMMAND cp -v ${CMAKE_CURRENT_SOURCE_DIR}/../load ${CMAKE_BINARY_DIR}
+##    COMMAND sed --in-place s/LOAD_TARGET /${ProjectName}/ ${CMAKE_BINARY_DIR}/load
+## )
+## =======================================================
+## Usage:  
+##  cd build
+##  make && ./load
+
+TARGETFILE=src/LOAD_TARGET.uf2
+
+if [ ! -f ${TARGETFILE} ]
+then 
+    echo "ERROR: target not found [${TARGETFILE}]"
+    exit 1
+fi
+if [ ! `command -v picotool` ] 
+then 
+    echo 'ERROR: pictool not found'
+    exit 1
+fi
+
+picotool load ${TARGETFILE} -f -v 
