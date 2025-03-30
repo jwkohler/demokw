@@ -1,0 +1,4 @@
+#!/bin/sh
+
+git push https://${GIT_TOKEN}@github.com/jwkohler/demokw.git/
+

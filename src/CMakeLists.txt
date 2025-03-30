@@ -4,6 +4,8 @@
 
 add_executable(${ProjectName}
     main.cpp
+    valve.cpp
+    command.cpp
     utils/hw_claims.cpp
     utils/utils.cpp
     utils/allocators.cpp
@@ -14,8 +16,10 @@ include_directories(${ProjectName}
 )
 
 target_compile_definitions(${ProjectName} PRIVATE 
-    LED_ON_MS=300
-    LED_OFF_MS=300
+    IO_RUN=16
+    IO_BUSY=18
+    IO_VALVE=19
+    IO_DEBUG_CLK=17
 )
 
 target_include_directories(${ProjectName} PRIVATE

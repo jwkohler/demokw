@@ -8,7 +8,7 @@ if (PICO_SDK_VERSION_STRING VERSION_LESS "2.1.0")
 endif()
 
 # Name project
-SET(ProjectName blink)
+SET(ProjectName demokw)
 SET(PICO_BOARD pico)
 #SET(PICO_BOARD pico_w)
 
