@@ -47,7 +47,7 @@ private:
     // the valve controller is working in
     // valve controller sets its time unit with TIMER_INTERVAL_US which is
     // the number of microseconds per 'tick'
-    duration_t normalize(float t) { return duration_t(t * (1000 / TIMER_INTERVAL_US)); }
+    duration_t normalize(float t) { return duration_t((t + 0.00) * (1000 / TIMER_INTERVAL_US)); }
 
 public:
     DotRecipe()

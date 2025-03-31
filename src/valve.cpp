@@ -62,36 +62,37 @@ void __time_critical_func(Valve::run)()
             _state = OPEN;
         }
         else
+        {
             clear_busy();
+        }
         break;
         //
         // OPEN state
         // count 'ticks' until the recpie open time has expired
         // then transition to CLOSE
     case OPEN:
-        if (_state_count >= _recipe->_open_time_normal)
-        {
-            set_valve_close();
-            _state_count = 0;
-            _state = CLOSE;
-        }
+        if (_state_count < _recipe->_open_time_normal)
+            return;
+        set_valve_close();
+        _state_count = 0;
+        _state = CLOSE;
         break;
         //
         // CLOSE state
         // count 'ticks' until the recipe close time has expired
         // then transition to IDLE
     case CLOSE:
-        if (_state_count >= _recipe->_close_time_normal)
+        if (_state_count < _recipe->_close_time_normal)
+            return;
+        _state_count = 0;
+        if (should_run())
         {
-            _state_count = 0;
-            if (should_run())
-            {
-                set_valve_open();
-                _state = OPEN;
-            }
-            else
-                _state = IDLE;
+            set_valve_open();
+            _state = OPEN;
         }
+        else
+            _state = IDLE;
+
         break;
         //
         // ERROR state
@@ -138,18 +139,24 @@ void Valve::initialize_io()
 //
 // set up timer IRQ and handler
 //
+#define ALARM_NUM 1
+#define ALARM_IRQ timer_hardware_alarm_get_irq_num(timer_hw, ALARM_NUM)
+
 void Valve::initialize_timer()
 {
-    // disable interrupt
-    irq_set_enabled(TIMER_IRQ_1, false);
-    // install handler
-    irq_set_exclusive_handler(TIMER_IRQ_1, timer_isr);
-    // set counter - offsets from current count
-    timer_hw->alarm[1] = timer_hw->timerawl + TIMER_INTERVAL_US;
-    // enable interrupt
-    irq_set_enabled(TIMER_IRQ_1, true);
-    // enable clock interrupt
-    hw_set_bits(&timer_hw->inte, 1 << 1);
+
+    hw_set_bits(&timer_hw->inte, 1u << ALARM_NUM);
+    // Set irq handler for alarm irq
+    irq_set_exclusive_handler(ALARM_IRQ, timer_isr);
+    // Enable the alarm irq
+    irq_set_enabled(ALARM_IRQ, true);
+    // Alarm is only 32 bits so if trying to delay more
+    // than that need to be careful and keep track of the upper
+    // bits
+    uint64_t target = timer_hw->timerawl + TIMER_INTERVAL_US;
+    // write the lower 32 bits of the target time to the alarm which
+    // will arm it
+    timer_hw->alarm[ALARM_NUM] = (uint32_t)target;
 }
 //
 // Timer ISR
@@ -158,9 +165,10 @@ void Valve::initialize_timer()
 void __time_critical_func(Valve::timer_isr)()
 {
     // clear interrupt
-    hw_clear_bits(&timer_hw->intr, 1 << 1);
-    // Schedule the next interrupt
+    hw_clear_bits(&timer_hw->intr, 1u << ALARM_NUM);
+    // schedule the next interrupt
     uint64_t target = timer_hw->timerawl + TIMER_INTERVAL_US;
+    // write arms the timer
     timer_hw->alarm[1] = (uint32_t)target;
     if (_instance)
         _instance->run();

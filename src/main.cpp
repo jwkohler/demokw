@@ -36,8 +36,8 @@ int main()
     // controller is running upon return
     init_valve_controller();
 
-    recipe.open_time(5);
-    recipe.close_time(10);
+    recipe.open_time(10.3);
+    recipe.close_time(5.0);
 
     command_initialize();
 
