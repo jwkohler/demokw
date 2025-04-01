@@ -169,7 +169,7 @@ void __time_critical_func(Valve::timer_isr)()
     // schedule the next interrupt
     uint64_t target = timer_hw->timerawl + TIMER_INTERVAL_US;
     // write arms the timer
-    timer_hw->alarm[1] = (uint32_t)target;
+    timer_hw->alarm[ALARM_NUM] = (uint32_t)target;
     if (_instance)
         _instance->run();
 }
